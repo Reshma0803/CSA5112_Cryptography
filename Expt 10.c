@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
-
 char matrix[5][5] = {
     {'M', 'F', 'H', 'I', 'K'},
     {'U', 'N', 'O', 'P', 'Q'},
