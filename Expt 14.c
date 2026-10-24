@@ -1,60 +1,85 @@
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>
-int main() {
-    char text[500], result[500];
-    int key[500], n = 0, i, choice;
-    printf("ONE-TIME PAD VIGENERE CIPHER\n");
-    printf("1. Encryption\n");
-    printf("2. Decryption\n");
-    printf("Enter your choice: ");
-    scanf("%d", &choice);
-    getchar();
-    if (choice != 1 && choice != 2) {
-        printf("Invalid choice!\n");
-        return 1;
-    }
 
-    printf("Enter message: ");
-    fgets(text, sizeof(text), stdin);
+void cleanText(char text[], char result[]) {
+    int i, j = 0;
 
     for (i = 0; text[i] != '\0'; i++) {
-        if (isalpha((unsigned char)text[i])) {
-            text[n++] = toupper((unsigned char)text[i]);
-        }
-    }
-    text[n] = '\0';
-
-    if (n == 0) {
-        printf("No letters entered.\n");
-        return 1;
+        if (isalpha((unsigned char)text[i]))
+            result[j++] = tolower((unsigned char)text[i]);
     }
 
-    printf("Enter %d key numbers (0-25):\n", n);
+    result[j] = '\0';
+}
+
+void encrypt(char text[], int key[], char result[]) {
+    int i;
+
+    for (i = 0; text[i] != '\0'; i++) {
+        result[i] = (text[i] - 'a' + key[i]) % 26 + 'a';
+    }
+
+    result[i] = '\0';
+}
+
+void decrypt(char text[], int key[], char result[]) {
+    int i;
+
+    for (i = 0; text[i] != '\0'; i++) {
+        result[i] = (text[i] - 'a' - key[i] + 26) % 26 + 'a';
+    }
+
+    result[i] = '\0';
+}
+
+int main() {
+    char plaintext[] = "send more money";
+    char target[] = "cash not needed";
+    char cleanPlain[100], cleanTarget[100];
+    char ciphertext[100], recovered[100];
+    int keyA[13] = {9, 0, 1, 7, 23, 15, 21, 14, 11, 11, 2, 8, 9};
+    int keyB[13];
+    int i, n;
+
+    cleanText(plaintext, cleanPlain);
+    cleanText(target, cleanTarget);
+
+    n = strlen(cleanPlain);
+
+    printf("ONE-TIME PAD VIGENERE CIPHER\n");
+    printf("----------------------------\n");
+
+    printf("\n(a) Encryption\n");
+    printf("Plaintext: %s\n", plaintext);
+    printf("Key stream: ");
+
+    for (i = 0; i < n; i++)
+        printf("%d ", keyA[i]);
+
+    encrypt(cleanPlain, keyA, ciphertext);
+    printf("\nCiphertext: %s\n", ciphertext);
+
+    printf("\n(b) Finding a key for the target plaintext\n");
+    printf("Target plaintext: %s\n", target);
+    printf("Ciphertext used: %s\n", ciphertext);
+    printf("Required key stream: ");
 
     for (i = 0; i < n; i++) {
-        if (scanf("%d", &key[i]) != 1 ||
-            key[i] < 0 || key[i] > 25) {
-            printf("Invalid key! Enter numbers from 0 to 25.\n");
-            return 1;
-        }
+        keyB[i] = (ciphertext[i] - 'a' -
+                   cleanTarget[i] + 26) % 26;
+        printf("%d ", keyB[i]);
     }
 
+    decrypt(ciphertext, keyB, recovered);
+
+    printf("\nDecrypted plaintext: ");
     for (i = 0; i < n; i++) {
-        int value = text[i] - 'A';
-
-        if (choice == 1)
-            result[i] = (value + key[i]) % 26 + 'A';
-        else
-            result[i] = (value - key[i] + 26) % 26 + 'A';
+        putchar(recovered[i]);
+        if (i == 3 || i == 6)
+            putchar(' ');
     }
 
-    result[n] = '\0';
-
-    if (choice == 1)
-        printf("Encrypted message: %s\n", result);
-    else
-        printf("Decrypted message: %s\n", result);
-
+    printf("\n");
     return 0;
 }
