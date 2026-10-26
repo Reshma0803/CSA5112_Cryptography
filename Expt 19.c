@@ -1,28 +1,22 @@
 #include <stdio.h>
 #include <string.h>
-#include <openssl/des.h>
 #include <openssl/evp.h>
 
-int main(void)
-{
+int main() {
+    EVP_CIPHER_CTX *ctx;
     unsigned char key[24] = "123456789012345678901234";
     unsigned char iv[8] = "12345678";
-    unsigned char plaintext[256];
-    unsigned char ciphertext[272];
-
+    unsigned char plaintext[1024];
+    unsigned char ciphertext[1040];
     int len, ciphertext_len;
 
     printf("Enter plaintext: ");
     if (fgets((char *)plaintext, sizeof(plaintext), stdin) == NULL)
         return 1;
 
-    len = strlen((char *)plaintext);
+    plaintext[strcspn((char *)plaintext, "\n")] = '\0';
 
-    if (len > 0 && plaintext[len - 1] == '\n')
-        plaintext[--len] = '\0';
-
-    EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
-
+    ctx = EVP_CIPHER_CTX_new();
     if (ctx == NULL) {
         printf("Context creation failed.\n");
         return 1;
@@ -35,25 +29,24 @@ int main(void)
         return 1;
     }
 
-    if (EVP_EncryptUpdate(ctx, ciphertext, &ciphertext_len,
-                          plaintext, len) != 1) {
+    if (EVP_EncryptUpdate(ctx, ciphertext, &len,
+                          plaintext, strlen((char *)plaintext)) != 1) {
         printf("Encryption failed.\n");
         EVP_CIPHER_CTX_free(ctx);
         return 1;
     }
 
-    int final_len;
+    ciphertext_len = len;
 
-    if (EVP_EncryptFinal_ex(ctx, ciphertext + ciphertext_len,
-                            &final_len) != 1) {
+    if (EVP_EncryptFinal_ex(ctx, ciphertext + len, &len) != 1) {
         printf("Final encryption failed.\n");
         EVP_CIPHER_CTX_free(ctx);
         return 1;
     }
 
-    ciphertext_len += final_len;
+    ciphertext_len += len;
 
-    printf("\nCiphertext (hex): ");
+    printf("Encrypted ciphertext (hex): ");
     for (int i = 0; i < ciphertext_len; i++)
         printf("%02X", ciphertext[i]);
 
